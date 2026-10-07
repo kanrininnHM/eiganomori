@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>アンケート</title>
+</head>
+<body>
+  <h1>『投票箱』あなたのおすすめの映画を教えて！</h1>
+　<p>投票は一日一回までです。投票結果は『みんなのおすすめ映画』に集計されます。<br>
+あなたのおすすめを気軽に投票してみてね<br>
+※おすすめ映画の名称はできる限り正式名称で入力してください。正しく集計されない可能性があります。
+</p>
+  <form id="surveyForm">
+ <label>お名前</label><br>
+    <input type="text" id="username"><br><br>
+
+    <label>おすすめ映画</label><br>
+    <input type="text" id="movie"><br><br>
+ 
+    <label>おすすめ理由</label><br>
+    <textarea id="comment"></textarea><br><br>
+
+    <button type="submit">送信</button>
+  </form>
+
+<script>
+    document.getElementById("surveyForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById("username").value;
+      const movie = document.getElementById("movie").value;
+      const comment = document.getElementById("comment").value;
+　　　const userId = localStorage.getItem("userId");
+
+      // 今日の日付
+const today = new Date().toISOString().split("T")[0];
+ 
+// 前回投票日を取得
+const lastVoteDate = localStorage.getItem("voteDate_" + userId);
+
+if (lastVoteDate === today) {
+alert("今日はすでに投票しています。1日1回までです。");
+return;
+}     
+      const saved = JSON.parse(localStorage.getItem("survey")) || [];
+
+     
+      saved.push({ name, movie, comment, userId, date: today });
+
+      
+      localStorage.setItem("survey", JSON.stringify(saved));
+    
+      // 投票日を保存
+localStorage.setItem("voteDate_" + userId, today);
+
+      alert("保存しました");
+    });
+</script>
+    <a href="list.html">みんなのおすすめ映画</a>
+</body>
+</html>
