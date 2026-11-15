@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    .box {
+      width: 300px;
+      height: 200px;
+      border: 2px solid #ccc;
+      margin-bottom: 20px;
+    }
+
+    .cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .contain img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .fill img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+
+     .responsive {
+      width: 50%;
+      height: auto;
+      margin: 0 auto;
+    }
+    .container {
+      width: 60%;
+      margin: 0 auto;
+    }
+    .btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+  .replyForm {
+  margin-top: 10px;
+}
+
+  .replies {
+  margin-top: 10px;
+}
+  </style>
+</head>
+
+<body>
+
+
+<h1>『スパイダーマン ブランド・ニュー・デイ』</h1>
+<p>劇場公開日 2026年7月31日</p>
+
+<p>HMの評価：良</p>
+
+<p>僕はマーベルが好きだ。主人公の葛藤には奥行きを感じられるし、戦闘シーンは大迫力で非日常を味わわせてくれるからだ。本作も例にもれず、素晴らしかった。僕が日本生まれ日本育ちであるために、スパイダーマンに自己投影するほどの没入感は得られなかったが、スパイダーマンの葛藤はそれでも心に来るものがあったし、戦闘描写は緻密でかっこよかった。
+スパイダーマンカッコいい。スパイダーマン見たことない人でも楽しめるだろう作品だ。ぜひ見てほしい。</p>
+<br>
+<br>
+<br>
+<br>
+
+ <div class="container">
+    <img src="https://tse1.mm.bing.net/th/id/OIP.XvjNt5eWbJFpE4IPQOew4QAAAA?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" class="responsive" alt="譏逕ｻ縺ｮ逕ｻ蜒">
+  </div>
+ <p>出典 theriver.com</p>
+
+<br>
+<br>
+<br>
+<br>
+<h2>コメント欄</h2>
+
+<form id="commentForm">
+  <input type="text" id="username" placeholder="名前"><br><br>
+  <textarea id="comment" placeholder="コメント"></textarea><br><br>
+  <button type="submit">投稿</button>
+</form>
+
+<p id="myId"></p>
+
+<div id="commentList"></div>
+
+<script>
+
+  if (!localStorage.getItem("userId")) {
+    const id = crypto.randomUUID();
+    localStorage.setItem("userId", id);
+  }
+
+  document.getElementById("myId").innerText =
+    "あなたのユーザーID: " + localStorage.getItem("userId");
+  document.getElementById("commentForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("username").value;
+    const comment = document.getElementById("comment").value;
+    const userId = localStorage.getItem("userId");
+
+    const saved = JSON.parse(localStorage.getItem("commentsc")) || [];
+
+    saved.push({
+      name,
+      comment,
+      userId,
+      date: new Date().toLocaleString(),
+      replies: []
+    });
+
+    localStorage.setItem("commentsc", JSON.stringify(saved));
+    alert("コメント投稿ありがとうございます！画面を下にスクロールして確認してください！");
+
+    displayComments();
+  });
+    function displayComments() {
+    const saved = JSON.parse(localStorage.getItem("commentsc")) || [];
+    const currentUserId = localStorage.getItem("userId");
+    const list = document.getElementById("commentList");
+
+    list.innerHTML = "";
+
+    saved.forEach((item, index) => {
+      const div = document.createElement("div");
+      div.style.border = "1px solid #ccc";
+      div.style.padding = "10px";
+      div.style.margin = "10px 0";
+
+
+    div.innerHTML = `
+     <strong>${item.name}</strong><br>
+    ${item.comment}<br>
+
+     <div class="btns">
+      <button onclick="replyForm(${index})">返信</button>
+      <button onclick="deleteComment(${index})">削除</button>
+     </div>
+
+    <div id="replyForm${index}" class="replyForm"></div>
+    <div id="replies${index}" class="replies"></div>
+     `;
+
+       list.appendChild(div);
+      displayReplies(item, index);
+     });
+   }
+
+   function replyForm(index) {
+  const area = document.getElementById(`replyForm${index}`);
+
+  area.innerHTML = `
+    <input type="text" id="replyName${index}" placeholder="名前"><br>
+    <textarea id="replyComment${index}" placeholder="返信内容"></textarea><br>
+    <button onclick="sendReply(${index})">返信を投稿</button>
+  `;
+   } 
+  function sendReply(index) {
+  const saved = JSON.parse(localStorage.getItem("commentsc")) || [];
+  const userId = localStorage.getItem("userId");
+
+  const name = document.getElementById(`replyName${index}`).value;
+  const comment = document.getElementById(`replyComment${index}`).value;
+
+  saved[index].replies.push({
+    name,
+    comment,
+    userId,
+    date: new Date().toLocaleString()
+  });
+
+  localStorage.setItem("commentsc", JSON.stringify(saved));
+  displayComments();
+   }
+
+   function displayReplies(item, index) {
+  const replyArea = document.getElementById(`replies${index}`);
+  replyArea.innerHTML = "";
+
+  const currentUserId = localStorage.getItem("userId");
+
+  item.replies.forEach((reply, rIndex) => {
+    const div = document.createElement("div");
+    div.style.margin = "10px 0 10px 20px";
+    div.style.padding = "10px";
+    div.style.borderLeft = "3px solid #ccc";
+
+    div.innerHTML = `
+      <strong>${reply.name}</strong> (${reply.date})<br>
+      ${reply.comment}<br>
+      <div class="btns">
+        ${
+          reply.userId === currentUserId
+            ? `<button onclick="deleteReply(${index}, ${rIndex})">返信を削除</button>`
+            : `<span style="color:#888;">（本人のみ削除可能）</span>`
+        }
+      </div>
+    `;
+
+    replyArea.appendChild(div);
+  });
+  }
+
+  function deleteComment(index) {
+    const saved = JSON.parse(localStorage.getItem("commentsc")) || [];
+    const currentUserId = localStorage.getItem("userId");
+ 
+    if (saved[index].userId !== currentUserId) {
+      alert("この返信は本人以外は削除できません");
+      return;
+    }
+
+    saved.splice(index, 1);
+    localStorage.setItem("commentsc", JSON.stringify(saved));
+    displayComments();
+  }
+    function deleteReply(commentIndex, replyIndex) {
+  const saved = JSON.parse(localStorage.getItem("commentsc")) || [];
+  const currentUserId = localStorage.getItem("userId");
+
+  const reply = saved[commentIndex].replies[replyIndex];
+
+  // 本人チェック
+  if (reply.userId !== currentUserId) {
+    alert("この返信は本人以外は削除できません");
+    return;
+  }
+
+  // 削除
+  saved[commentIndex].replies.splice(replyIndex, 1);
+  localStorage.setItem("commentsc", JSON.stringify(saved));
+
+  displayComments();
+}
+
+  displayComments();
+</script>
+</body>
+

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+http-equiv="Content-Security-Policy"
+content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+<title>『掲示板』みんなでしよう！映画の話</title>
+ 
+<style>
+ 
+body{
+font-family:sans-serif;
+background:#f4f4f4;
+padding:20px;
+}
+ 
+.container{
+max-width:800px;
+margin:auto;
+}
+ 
+h1{
+text-align:center;
+}
+ 
+.post-form{
+background:#fff;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+ 
+input,
+textarea{
+width:100%;
+padding:10px;
+margin-bottom:10px;
+box-sizing:border-box;
+}
+ 
+button{
+padding:8px 15px;
+cursor:pointer;
+}
+ 
+.thread {
+border-left: 8px solid #4f46e5;
+background: #fff;
+padding: 15px;
+margin: 15px 0;
+border-radius: 0 12px 12px 0;
+box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+transition: all 0.3s ease;
+}
+
+#threadMenu{
+width:100%;
+padding:10px;
+margin-bottom:20px;
+border:1px solid #ccc;
+border-radius:8px;
+background:white;
+}
+
+.thread:hover{
+background: orange !important;
+}
+
+.thread-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+ 
+.thread-title{
+font-size:20px;
+font-weight:bold;
+}
+ 
+.date{
+color:gray;
+font-size:12px;
+}
+ 
+.delete-btn{
+background:red;
+color:white;
+border:none;
+border-radius:5px;
+}
+ 
+.comment{
+background:#f8f8f8;
+padding:10px;
+margin-top:10px;
+border-radius:5px;
+}
+ 
+.comment button{
+margin-top:5px;
+}
+ 
+.replies{
+margin-top:10px;
+}
+ 
+.reply{
+background:#e9f3ff;
+border-left:4px solid #4a90e2;
+padding:10px;
+border-radius:8px;
+margin-top:10px;
+}
+
+
+.quote-text{
+font-size:10px;
+color:#888;
+}
+
+.author{
+font-weight:bold;
+color:#2563eb;
+margin-bottom:5px;
+}
+ 
+.reply-target{
+background:#f1f1f1;
+border-left:4px solid #999;
+padding:8px;
+margin-bottom:8px;
+border-radius:5px;
+font-size:10px;
+color:#555;
+}
+ 
+.reply-text{
+margin-bottom:5px;
+}
+
+.like-area{
+margin-top:5px;
+margin-bottom:5px;
+display:flex;
+gap:10px;
+align-items:center;
+}
+ 
+.like-area button{
+background:#ff5c8a;
+color:white;
+border:none;
+border-radius:5px;
+padding:4px 10px;
+}
+ 
+</style>
+</head>
+<body>
+ 
+<div class="container">
+ 
+<h1>『掲示板』みんなでしよう！映画の話</h1>
+<p>ユーザー同士で自由にお話ができます。映画に関することならなんでもOK！<br>
+「スレッドを選択」から好きなスレッドにジャンプもできるよ！<br>
+これだなって思う話題がなければ、スレッド投稿して自分で作ってみてね<br><br>
+</p>
+<select id="threadMenu" onchange="jumpToThread()">
+<option value="">スレッドを選択</option>
+</select>
+
+<div class="post-form">
+<input
+type="text"
+id="username"
+placeholder="名前を入力">
+<input
+type="text"
+id="title"
+placeholder="スレッドタイトル">
+ 
+<textarea
+id="content"
+rows="5"
+placeholder="内容を入力"></textarea>
+ 
+<button onclick="createThread()">
+投稿
+</button>
+</div>
+ 
+<div id="threadList"></div>
+ 
+</div>
+ 
+<script>
+ 
+let threads =
+JSON.parse(
+localStorage.getItem("threads")
+) || [];
+
+let userId =
+localStorage.getItem("userId");
+ 
+if(!userId){
+ 
+userId =
+"user_" +
+Date.now() +
+"_" +
+Math.random().toString(36).slice(2);
+ 
+localStorage.setItem(
+"userId",
+userId
+);
+ 
+}
+ 
+/* 古いデータ対応 */
+threads.forEach(thread => {
+ 
+if(!thread.name){
+thread.name = "匿名";
+}
+ 
+if(!thread.comments){
+thread.comments = [];
+}
+
+function fixReplies(items){
+ 
+items.forEach(item => {
+ 
+if(!item.name){
+item.name = "匿名";
+}
+
+if(item.likes === undefined){
+item.likes = 0;
+}
+
+if(!item.likedUsers){
+item.likedUsers = [];
+}
+
+if(!item.replies){
+item.replies = [];
+}
+ 
+fixReplies(item.replies);
+ 
+});
+ 
+}
+ 
+fixReplies(thread.comments);
+ 
+});
+ 
+function saveData(){
+
+localStorage.setItem(
+"threads",
+JSON.stringify(threads)
+);
+ 
+}
+
+function likeNode(id){
+ 
+for(const thread of threads){
+ 
+const node =
+findNode(
+thread.comments,
+id
+);
+ 
+if(node){
+ 
+const index =
+node.likedUsers.indexOf(userId);
+ 
+// 既にいいね済み
+if(index !== -1){
+ 
+node.likes--;
+ 
+node.likedUsers.splice(
+index,
+1
+);
+ 
+}else{
+ 
+node.likes++;
+ 
+node.likedUsers.push(
+userId
+);
+ 
+}
+ 
+saveData();
+renderThreads();
+ 
+return;
+}
+ 
+}
+ 
+}
+``
+
+function escapeHtml(str){
+ 
+return str
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;")
+.replace(/"/g, "&quot;")
+.replace(/'/g, "&#039;");
+ 
+}
+
+function findNode(nodes, id){
+ 
+for(const node of nodes){
+ 
+if(node.id == id){
+return node;
+}
+ 
+const found =
+findNode(
+node.replies || [],
+id
+);
+ 
+if(found){
+return found;
+}
+}
+ 
+return null;
+}
+
+function removeNode(nodes, id){
+ 
+return nodes.filter(node => {
+ 
+node.replies =
+removeNode(
+node.replies || [],
+id
+);
+ 
+return node.id !== id;
+ 
+});
+ 
+}
+
+function updateThreadMenu(){
+ 
+const menu =
+document.getElementById("threadMenu");
+ 
+menu.innerHTML =
+'<option value="">スレッドを選択</option>';
+ 
+threads.forEach(thread => {
+ 
+menu.innerHTML += `
+<option value="${thread.id}">
+${escapeHtml(thread.title)}
+</option>
+`;
+ 
+});
+ 
+}
+
+
+function jumpToThread(){
+ 
+const id =
+document.getElementById("threadMenu").value;
+ 
+if(!id) return;
+ 
+const target =
+document.getElementById(`thread-${id}`);
+ 
+if(target){
+target.scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+}
+ 
+}
+
+function renderThreads(){
+ 
+const threadList =
+document.getElementById("threadList");
+ 
+if(threads.length === 0){
+ 
+threadList.innerHTML =
+"<p>まだスレッドはありません。</p>";
+
+updateThreadMenu();
+return;
+}
+ 
+threadList.innerHTML = "";
+ 
+threads.forEach(thread => {
+ 
+const div =
+document.createElement("div");
+ 
+div.classList.add("thread");
+
+div.id = `thread-${thread.id}`;
+ 
+div.innerHTML = `
+ 
+<div class="thread-header">
+ 
+<div>
+ 
+<div class="thread-title">
+${escapeHtml(thread.title)}
+</div>
+
+<div class="author">
+ 👤 ${escapeHtml(thread.name)}
+</div>
+
+<div class="date">
+${thread.date}
+</div>
+ 
+</div>
+ 
+<button
+class="delete-btn"
+onclick="deleteThread(${thread.id})">
+削除
+</button>
+ 
+</div>
+ 
+<p>${escapeHtml(thread.content)}</p>
+ 
+<hr>
+ 
+<h4>コメント</h4>
+ 
+<div class="comments">
+ 
+${renderReplies(
+thread.comments || []
+)}
+ 
+</div>
+<input
+type="text"
+id="comment-${thread.id}"
+placeholder="コメントを書く">
+ 
+<button
+onclick="addComment(${thread.id})">
+コメント投稿
+</button>
+ 
+`;
+ 
+threadList.appendChild(div);
+ 
+});
+
+updateThreadMenu();
+ 
+}
+ 
+function createThread(){
+ 
+const title =
+document.getElementById("title")
+.value.trim();
+ 
+const content =
+document.getElementById("content")
+.value.trim();
+
+if(title.length > 100){
+alert("タイトルは100文字以内です");
+return;
+}
+ 
+if(content.length > 3000){
+alert("本文は3000文字以内です");
+return;
+}
+ 
+if(title === "" || content === ""){
+ 
+alert(
+"タイトルと内容を入力してください"
+);
+ 
+return;
+}
+
+const name =
+document.getElementById("username")
+.value.trim() || "匿名";
+ 
+const thread = {
+ 
+id: Date.now(),
+name,
+title,
+content,
+date: new Date().toLocaleString(),
+comments: []
+ 
+};
+ 
+threads.unshift(thread);
+ 
+saveData();
+ 
+document.getElementById("title").value = "";
+document.getElementById("content").value = "";
+ 
+renderThreads();
+ 
+}
+ 
+function deleteThread(id){
+ 
+if(!confirm("削除しますか？")){
+return;
+}
+ 
+threads =
+threads.filter(
+thread => thread.id !== id
+);
+ 
+saveData();
+renderThreads();
+ 
+}
+ 
+function addComment(threadId){
+
+const name =
+document.getElementById("username")
+.value.trim() || "匿名";
+
+const input =
+document.getElementById(
+`comment-${threadId}`
+);
+ 
+const text =
+input.value.trim();
+ 
+if(text === ""){
+return;
+}
+ 
+const thread =
+threads.find(
+t => t.id === threadId
+);
+ 
+thread.comments.push({
+ 
+id: Date.now(),
+name,
+text,
+number: Date.now(),
+date: new Date().toLocaleString(),
+likes: 0,
+likedUsers: [],
+replies: []
+ 
+});
+ 
+saveData();
+renderThreads();
+ 
+}
+
+function addReply(parentId){
+
+const name =
+document.getElementById("username")
+.value.trim() || "匿名";
+
+const input =
+document.getElementById(
+`reply-${parentId}`
+);
+ 
+const text =
+input.value.trim();
+ 
+if(!text){
+return;
+}
+ 
+for(const thread of threads){
+ 
+const parent =
+findNode(
+thread.comments,
+parentId
+);
+ 
+if(parent){
+ 
+parent.replies.push({
+id: Date.now(),
+name,
+text,
+targetName:
+  parent.name,
+targetText:
+parent.text.length > 30
+? parent.text.substring(0,30) + "..."
+: parent.text,
+date:
+new Date()
+.toLocaleString(),
+likes: 0,
+likedUsers: [],
+replies:[]
+});
+ 
+saveData();
+renderThreads();
+return;
+}
+}
+}
+
+function deleteNode(id){
+ 
+threads.forEach(thread => {
+ 
+thread.comments =
+removeNode(
+thread.comments,
+id
+);
+ 
+});
+ 
+saveData();
+renderThreads();
+}
+
+function renderReplies(items, level = 0){
+ 
+return items.map(item => `
+ 
+<div
+class="reply"
+style="
+margin-left:
+${level * 30}px;
+">
+ 
+${
+item.targetText
+? `
+<p class="reply-target">
+>>${escapeHtml(item.targetName)} さんへ返信<br>
+
+<span class="quote-text">
+↳ ${escapeHtml(item.targetText)}
+</span>
+
+</p>
+`
+: ""
+}
+
+<div class="author">
+👤${escapeHtml(item.name)}
+</div>
+ 
+<div class="reply-text">
+  ${escapeHtml(item.text)}</div>
+ 
+<small>
+${item.date}
+</small>
+
+<div class="like-area">
+ 
+❤️ ${item.likes}
+ 
+<button
+onclick="likeNode(${item.id})">
+いいね
+</button>
+ 
+</div>
+ 
+<br>
+ 
+<button
+onclick="
+deleteNode(
+${item.id}
+)">
+削除
+</button>
+ 
+<input
+type="text"
+id="reply-${item.id}"
+placeholder="このコメントに返信">
+ 
+<button
+onclick="
+addReply(
+${item.id}
+)">
+返信
+</button>
+ 
+${
+renderReplies(
+item.replies || [],
+level + 1
+)
+}
+ 
+</div>
+ 
+`).join("");
+ 
+}
+
+function findNode(nodes, id){
+ 
+for(const node of nodes){
+ 
+if(node.id == id){
+return node;
+}
+ 
+const found =
+findNode(
+node.replies || [],
+id
+);
+ 
+if(found){
+return found;
+}
+ 
+}
+ 
+return null;
+}
+
+function removeNode(nodes, id){
+ 
+return nodes.filter(node => {
+ 
+node.replies =
+removeNode(
+node.replies || [],
+id
+);
+ 
+return node.id !== id;
+ 
+});
+ 
+}
+
+ 
+renderThreads();
+ 
+</script>
+ 
+</body>
+</html>

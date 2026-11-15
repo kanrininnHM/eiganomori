@@ -1,0 +1,43 @@
+!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>アンケート保存</title>
+</head>
+<body>
+  <h1>アンケート</h1>
+
+  <form id="surveyForm">
+    <label>お名前：</label><br>
+    <input type="text" id="username"><br><br>
+
+    <label>あなたのおすすめの映画（1作品）：</label><br>
+    <textarea id="comment"></textarea><br><br>
+　　　
+　　<label>おすすめポイント：</label><br>
+    <textarea id="commentp"></textarea><br><br>
+
+    <button type="submit">保存</button>
+  </form>
+
+  <h2>保存されたデータ</h2>
+  <p id="savedData"></p>
+
+  <script>
+    document.getElementById("surveyForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const namef = document.getElementById("username").value;
+      const comment = document.getElementById("comment").value;
+      const commentp = document.getElementById("commentp").value;
+
+      localStorage.setItem("username", namef);
+      localStorage.setItem("comment", comment);
+      localStorage.setItem("commentp", commentp);
+
+      document.getElementById("savedData").innerText =
+        `名前: ${namef}\nあなたのおすすめの映画（1作品）: ${comment}\nおすすめポイント: ${commentp}`;
+    });
+  </script>
+</body>
+</html>

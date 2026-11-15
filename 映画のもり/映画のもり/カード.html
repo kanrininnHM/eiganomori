@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang＝"ja">
+<head>
+  <style>
+     .container {
+      width: 60%;
+       margin: 0 auto;
+    }
+    .menu{
+    display:flex;
+    gap:30px;
+    list-style:none;
+    }
+    .responsive {
+      width: 80%;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .card h3 {
+      margin: 12px 0 8px;
+    }
+  </style>
+</head>
+
+<hr>
+ 
+<footer style="
+margin-top: 30px;
+padding: 15px;
+background-color: #f5f5f5;
+font-size: 14px;
+color: #666;
+line-height: 1.8;
+">
+<footer class="footer">
+<div class="footer-content">
+<h3>🎬 免責事項</h3>
+ 
+<p>
+本サイトは利用者同士でおすすめ映画を共有することを目的とした掲示板サービス、アンケートサービスです。<br>
+投稿内容は利用者個人の意見であり、運営者は内容の正確性・有用性を保証しません。<br>
+投稿内容により生じた損害やトラブルについて、運営者は一切の責任を負いません。<br>
+</p>
+<p><a href="利用規約.html">利用規約</a></p>
+<p>めにゅーとかサービス諸々は下へスクロールしていったら出てきます。節度を守って楽しんでくだされ</p>
+<p class="copyright">
+© 映画のもり 管理人HM
+</p>
+</div>
+</footer>
+<body>
+<header>
+<div class="container">
+<h1 class="logo">
+ 
+<img
+src="マスコットキャラ　映画くん.png" class="responsive">
+</img>
+</h1>
+ 
+<nav>
+<p>めにゅー</p>
+<ul class="menu">
+<li><a href="スレッド.html"> ☆『掲示板』みんなでしよう！映画の話</a></li>
+<li><a href="アンケート.html"> ☆『投票箱』あなたのおすすめの映画を教えて！</a></li>
+<li><a href="HMの暇つぶし.html"> ☆HMの暇つぶし</a></li>
+</ul>
+</nav>
+</div>
+</header>
+
+　<h2>映画掲示板 『映画のもり』へようこそ！</h2>
+<p>このサイトは、週末に映画を見ることが趣味の管理人HMが、<br>
+「映画の感想を共有したい！」「みんなのおすすめの映画が知りたい！」と思って作った憩いの場です！<br>
+ぜひぜひ気軽にあなたの好きな映画や考えをコメント欄や投票で共有してみてください！<br>
+このサイトの主人公は、君だぁ！！<br>
+<br>
+「何を言うかが知性、何を言わないかが品性、どう伝えるかが人間性」<br><br>
+※コンテンツ説明※<br>
+☆『掲示板』みんなでしよう！映画の話…ユーザー同士で自由にお話しができます。映画に関することならなんでもOK！ぜひぜひ気軽にコメントしてみてね！<br>
+☆『投票箱』あなたのおすすめの映画を教えて！…一日一回、あなたのおすすめ映画を投票できます。<a href="list.html">みんなのおすすめ映画</a>から投票結果が見れます。ぜひぜひ気軽に投票してみてね！<br>
+☆HMの暇つぶし…これまで管理人が鑑賞した映画の感想が見れます。随時(理想は毎週)更新してるよ！気になる人は見てみて！<br>
+</p>
+
+  <br>
+  <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+　　 <script>
+    // ユーザーID発行
+    if (!localStorage.getItem("userId")) {
+      const id = crypto.randomUUID();
+      localStorage.setItem("userId", id);
+    }
+　　document.getElementById("myId").innerText =
+      "あなたのユーザーID: " + localStorage.getItem("userId");
+
+    console.log("あなたのID:", localStorage.getItem("userId"));
+  </script>
+</body>
+</html>
